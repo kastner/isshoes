@@ -118,7 +118,6 @@ function sendEmail(email, issue) {
 
 // periodic timer to do work
 setInterval(function () {
-//setTimeout(function () {
   sys.log("Running timer");
   repos(function (repos) {
     repos.forEach(function (repo) {
@@ -141,7 +140,7 @@ setInterval(function () {
 
           res.on('end', function () {
             if (data) {
-              //client.hset(repok, "lastChecked", Number(new Date));
+              client.hset(repok, "lastChecked", Number(new Date));
               var output = eval(data);
               output.forEach(function (issue) {
                 var seenKey = repo_key(repo + ":seenNumbers");
