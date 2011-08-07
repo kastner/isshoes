@@ -1,0 +1,8 @@
+{
+  "name": "isshoes",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "2.2.0",
+    "redis": ">0.0"
+  }
+}
