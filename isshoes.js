@@ -7,6 +7,16 @@ var express = require('express')
   , rurl    = urllib.parse(process.env.REDISTOGO_URL || "redis://localhost:6379")
   , redis   = require('redis')
   , client  = redis.createClient(rurl.port, rurl.hostname)
+  , mailer  = require('nodemailer')
+
+mailer.SMTP = {
+  host: "smtp.sendgrid.net",
+  port: 25,
+  ssl: false,
+  use_authentication: true,
+  user: process.env.SENDGRID_USER,
+  pass: process.env.SENDGRID_PASSWORD
+}
 
 var github_api_host = process.env.GITHUB_API_HOST || "api.github.com";
 
@@ -112,8 +122,23 @@ function repos(callback) {
   });
 }
 
-function sendEmail(email, issue) {
-  console.log("Here is where we'd send the email... to: " + email + " issue: " + issue.title);
+function sendEmail(email, repo, issue) {
+  console.log("sending the email... to: " + email + " issue: " + issue.title);
+  var html_body = "<a href='" + issue.url + "'>" + issue.url + "</a><br>\n";
+  //html_body += "Issue from: <a href='" + issue.user.url + "'><img src='" + issue.user.avatar_url + "'></a><br>\n";
+  html_body += "Issue from: <a href='" + issue.user.url + "'>" + issue.user.login + "</a><br>\n";
+  //html_body += "<a href='" + + "'>" + + "</a><br><br>\n";
+  html_body += issue.body_html;
+
+  mailer.send_mail({
+    to: email,
+    subject: "4 [GH:Issue] [" + repo + "] " + issue.title,
+    html: html_body,
+    sender: "kastner@gmail.com"
+    //body: "Hey"
+  }, function (err, success) {
+    console.log('Message delivery: ' + success ? 'sent' : 'failed');
+  });
 }
 
 // periodic timer to do work
@@ -152,7 +177,7 @@ setInterval(function () {
 
                     // send emails
                     client.smembers(repo_key(repo + ":emails"), function (err, email) {
-                      sendEmail(email, issue);
+                      sendEmail(email, repo, issue);
                     });
                   }
                 });
